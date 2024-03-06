@@ -43,7 +43,6 @@ public class GeneticPythonSolver : PythonSolverBase
 			//declare your pip packages here
 			InstallPipModule("numpy");
 			InstallPipModule("pygad");
-			InstallPipModule("tqdm");
 			base.InitializePythonComponents();
 		}
 
