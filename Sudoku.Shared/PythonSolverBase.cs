@@ -202,15 +202,41 @@ namespace Sudoku.Shared
         public abstract Shared.SudokuGrid Solve(Shared.SudokuGrid s);
 
 
-        protected void AddNumpyConverterScript(PyModule scope)
+        /// <summary>
+        /// Injecte le script de conversion dans le scope Python
+        /// </summary>
+		protected void AddNumpyConverterScript(PyModule scope)
         {
 			string numpyConverterCode = Resources.numpy_converter_py;
 			scope.Exec(numpyConverterCode);
 		}
-			
 
 
+        /// <summary>
+        /// Convertit un tableau .NET en tableau NumPy
+        /// </summary>
+		public static PyObject AsNumpyArray(int[,] sCells, PyModule scope)
+		{
+			var pyObject = sCells.ToPython();
+			PyObject asNumpyArray = scope.Get("asNumpyArray");
+			PyObject pyCells = asNumpyArray.Invoke(pyObject);
+			return pyCells;
+		}
 
-    }
+        /// <summary>
+        /// Convertit un tableau NumPy en tableau .NET
+        /// </summary>
+		public static int[,] AsManagedArray(PyModule scope, PyObject pyCells)
+		{
+			PyObject asNetArray = scope.Get("asNetArray");
+			PyObject netResult = asNetArray.Invoke(pyCells);
+
+			// Convertissez le PyObject résultant en tableau .NET
+			var managedResult = netResult.AsManagedObject(typeof(int[,])) as int[,];
+			return managedResult;
+		}
+
+
+	}
 
 }
