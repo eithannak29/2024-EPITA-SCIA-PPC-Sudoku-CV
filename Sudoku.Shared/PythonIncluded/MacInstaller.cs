@@ -83,7 +83,7 @@ namespace Sudoku.Shared
             else
             {
                 string wheelPath = Path.Combine(lib, key);
-                await Task.Run((Action)(() => MacInstaller.CopyEmbeddedResourceToFile(assembly, key, wheelPath, force))).ConfigureAwait(false);
+				await MacInstaller.CopyEmbeddedResourceToFile(assembly, key, wheelPath, force).ConfigureAwait(false);
                 await MacInstaller.InstallLocalWheel(wheelPath, lib).ConfigureAwait(false);
                 lib = (string)null;
             }
@@ -161,13 +161,13 @@ namespace Sudoku.Shared
                 return;
             string filePath = Path.Combine(str1, resourceKey);
             string str2 = Path.Combine(MacInstaller.InstallPythonHome, "Scripts", "pip3");
-            MacInstaller.CopyEmbeddedResourceToFile(assembly, resourceKey, filePath, force);
-            await MacInstaller.TryInstallPip();
+			await MacInstaller.CopyEmbeddedResourceToFile(assembly, resourceKey, filePath, force).ConfigureAwait(false);
+			await MacInstaller.TryInstallPip().ConfigureAwait(false);
             string str3 = filePath;
             MacInstaller.RunCommand(str2 + " install " + str3);
         }
 
-        private static void CopyEmbeddedResourceToFile(
+		private static async Task CopyEmbeddedResourceToFile(
             Assembly assembly,
             string resourceName,
             string filePath,
@@ -180,18 +180,14 @@ namespace Sudoku.Shared
                 MacInstaller.Log("Error: Resource name '" + resourceName + "' not found in assembly " + assembly.FullName + "!");
             try
             {
-                using (Stream manifestResourceStream = assembly.GetManifestResourceStream(resourceKey))
-                {
-                    using (FileStream destination = new FileStream(filePath, FileMode.Create))
-                    {
+				await using Stream manifestResourceStream = assembly.GetManifestResourceStream(resourceKey);
+				await using FileStream destination = new FileStream(filePath, FileMode.Create);
                         if (manifestResourceStream == null)
                         {
                             MacInstaller.Log("CopyEmbeddedResourceToFile: Resource name '" + resourceName + "' not found!");
                             throw new ArgumentException("Resource name '" + resourceName + "' not found!");
                         }
-                        manifestResourceStream.CopyTo((Stream)destination);
-                    }
-                }
+				await manifestResourceStream.CopyToAsync((Stream)destination);
             }
             catch (Exception ex)
             {
@@ -199,7 +195,7 @@ namespace Sudoku.Shared
             }
         }
 
-        public static string GetResourceKey(Assembly assembly, string embedded_file) => ((IEnumerable<string>)assembly.GetManifestResourceNames()).FirstOrDefault<string>((Func<string, bool>)(x => x.Contains(embedded_file)));
+		private static string GetResourceKey(Assembly assembly, string embedded_file) => ((IEnumerable<string>)assembly.GetManifestResourceNames()).FirstOrDefault<string>((Func<string, bool>)(x => x.Contains(embedded_file)));
 
         public static async Task PipInstallModule(string module_name, string version = "", bool force = false)
         {
@@ -221,9 +217,9 @@ namespace Sudoku.Shared
             string path = Path.Combine(MacInstaller.InstallPythonHome, "");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
-            MacInstaller.RunCommand("cd " + path + " && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py");
+			await MacInstaller.RunCommand("cd " + path + " && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py", CancellationToken.None);
             // MacInstaller.RunCommand("cd " + MacInstaller.EmbeddedPythonHome + " && python.exe Lib\\get-pip.py");
-            MacInstaller.RunCommand("cd " + MacInstaller.InstallPythonHome + " && python3 get-pip.py");
+			await MacInstaller.RunCommand("cd " + MacInstaller.InstallPythonHome + " && python3 get-pip.py", CancellationToken.None);
         }
 
         public static async Task<bool> TryInstallPip(bool force = false)
@@ -427,7 +423,7 @@ namespace Sudoku.Shared
                 string str = Path.Combine(destinationDirectory, installationSource.ResourceName);
                 if (!installationSource.Force && File.Exists(str))
                     return str;
-                MacInstaller.CopyEmbeddedResourceToFile(installationSource.Assembly, installationSource.GetPythonDistributionName(), str);
+				await MacInstaller.CopyEmbeddedResourceToFile(installationSource.Assembly, installationSource.GetPythonDistributionName(), str).ConfigureAwait(false);
                 return str;
             }
 
