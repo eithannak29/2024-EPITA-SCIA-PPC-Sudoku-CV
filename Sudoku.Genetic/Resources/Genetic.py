@@ -65,21 +65,29 @@ def crossover_func(parents, offspring_size, ga_instance):
                                 (offspring[0][j], offspring[1][j]) = (offspring[1][j], offspring[0][j])
                         crossover_probability = random.random()
                 offsprings.append(offspring[0].reshape(3,3,3,3).swapaxes(1,2).reshape(9,9).flatten())
-
         return np.array(offsprings)
         
 
-def mutation_func():
-        #TODO
-        return
+def mutation_func(offspring, ga_instance):
+    mutation_probability = 0.1
+    num_mutations = int(mutation_probability * offspring.shape[1]) 
+    for idx in range(offspring.shape[0]):
+        mutation_indices = np.random.choice(range(offspring.shape[1]), num_mutations, replace=False)
+        for gene_index in mutation_indices:
+            if not fixed_number.flatten()[gene_index]:
+                new_val = np.random.choice(ga_instance.gene_space)
+                offspring[idx, gene_index] = new_val
+    return offspring
+
+
 
 # Params of the instance:
 
-num_generations = 1000 # Nombre de generations
-sol_per_pop = 20  # Nombre de solution par generations 
+num_generations = 5000 # Nombre de generations
+sol_per_pop = 100  # Nombre de solution par generations 
 num_genes = 9 * 9 # Nombre de genes ici 81 car 81 cases dans un Sudoku
 gene_space = [i for i in range(1, 10)]  # Valeurs que peuvent prendre les genes, ici de 1 -> 9 pour les valeurs possible dans un Sudoku
-mutation_percent_genes = 10, # Pourcentage de mutations
+mutation_percent_genes = 10 # Pourcentage de mutations
 
 # Autre parametres a rajouter #TODO
 
@@ -90,21 +98,22 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        fitness_func=fitness_func,
                        gene_space=gene_space,
                        initial_population = create_initial_pop(instance,sol_per_pop),
-                       #mutation_percent_genes=mutation_percent_genes,
+                       mutation_percent_genes=mutation_percent_genes,
                        crossover_type=crossover_func,
-                       mutation_type=None
+                       mutation_type=mutation_func
                        )
 
 # Run Instance:
+start = default_timer()
 
 ga_instance.run()
+
 
 # Get the best solution after the last generation
 solution, solution_fitness, solution_idx = ga_instance.best_solution()
 print("Paramètres de la solution :\n", np.array(solution).reshape(9,9))
 print("Fitness de la solution :", solution_fitness)
 
-start = default_timer()
 # if(solveSudoku(instance)):
 # 	print_grid(instance)
 # 	r=instance
