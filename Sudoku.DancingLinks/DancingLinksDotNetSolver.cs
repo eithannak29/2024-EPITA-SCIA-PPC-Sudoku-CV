@@ -10,7 +10,7 @@ namespace Sudoku.DancingLinks
     public class DancingLinksDotNetSolver : ISudokuSolver
     {
         /// <summary>
-        /// Solves the given Sudoku grid using a backtracking algorithm.
+        /// Solves the given Sudoku grid using a dancing links algorithm.
         /// </summary>
         /// <param name="s">The Sudoku grid to be solved.</param>
         /// <returns>
