@@ -14,6 +14,7 @@ using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Sudoku.Shared;
 
 
+
 namespace Sudoku.Benchmark
 {
 
