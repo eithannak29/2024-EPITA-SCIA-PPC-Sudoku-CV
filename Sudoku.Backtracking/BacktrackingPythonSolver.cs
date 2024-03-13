@@ -21,8 +21,12 @@ namespace Sudoku.Backtracking
 			// create a Python scope
 			using (PyModule scope = Py.CreateScope())
 			{
-				// convert the Cells array object to a PyObject
-				PyObject pyCells = s.Cells.ToPython();
+
+				// Injectez le script de conversion
+				AddNumpyConverterScript(scope);
+
+				// Convertissez le tableau .NET en tableau NumPy
+				var pyCells = AsNumpyArray(s.Cells, scope);
 
 				// create a Python variable "instance"
 				scope.Set("instance", pyCells);
@@ -30,23 +34,25 @@ namespace Sudoku.Backtracking
 				// run the Python script
 				string code = Resources.Backtracking_py;
 				scope.Exec(code);
-				
-				//Retrieve solved Sudoku variable
-				var result = scope.Get("r");
 
-				//Convert back to C# object
-				var managedResult = result.As<int[][]>();
-				//var convertesdResult = managedResult.Select(objList => objList.Select(o => (int)o).ToArray()).ToArray();
-				return new Shared.SudokuGrid() { Cells = managedResult };
+				PyObject result = scope.Get("result");
+
+				// Convertissez le résultat NumPy en tableau .NET
+				var managedResult = AsManagedArray(scope, result);
+
+				return new SudokuGrid() { Cells = managedResult };
 			}
 			//}
 
 		}
 
+		
+
+
 		protected override void InitializePythonComponents()
 		{
 			//declare your pip packages here
-			//InstallPipModule("numpy");
+			InstallPipModule("numpy");
 			base.InitializePythonComponents();
 		}
 
