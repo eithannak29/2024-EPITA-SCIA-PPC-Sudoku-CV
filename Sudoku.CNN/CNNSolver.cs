@@ -7,7 +7,7 @@ using Sudoku.Shared;
 
 namespace Sudoku.CNN
 {
-	public class ConvolutionalNetworkSolver : ISudokuSolver
+	public class CNNSolver : ISudokuSolver
 	{
 		public SudokuGrid Solve(SudokuGrid s)
 		{
