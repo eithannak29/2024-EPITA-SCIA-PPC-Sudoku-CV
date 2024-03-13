@@ -18,6 +18,8 @@ instance = ((0,0,0,0,9,4,0,3,0),
 
 fixed_number = np.array(instance).reshape(9,9) != 0 
 
+best_solution_fitness = 0
+
 def generate_initial_sudoku(instance):
         instance = np.array(instance).flatten()      
         for i,e in enumerate(instance):
@@ -52,6 +54,10 @@ def fitness_func(ga_instance, solution,solution_idx):
                                         if num != 0:
                                                 block.append(num)
                         fitness-= 9 - len(set(block))
+        global best_solution_fitness
+        if fitness >= best_solution_fitness:
+               fitness -= 1
+               best_solution_fitness = fitness
         return fitness
 
 def crossover_func(parents, offspring_size, ga_instance):
@@ -79,12 +85,16 @@ def mutation_func(offspring, ga_instance):
                 offspring[idx, gene_index] = new_val
     return offspring
 
-
+def on_generation(ga_instance):
+        solution, solution_fitness, solution_idx = ga_instance.best_solution()
+        print("Generation #", ga_instance.generations_completed)
+        print("Best solution so far:\n", np.array(solution).reshape(9,9))
+        print("Best solution fitness:", solution_fitness)
 
 # Params of the instance:
 
 num_generations = 5000 # Nombre de generations
-sol_per_pop = 100  # Nombre de solution par generations 
+sol_per_pop = 20  # Nombre de solution par generations 
 num_genes = 9 * 9 # Nombre de genes ici 81 car 81 cases dans un Sudoku
 gene_space = [i for i in range(1, 10)]  # Valeurs que peuvent prendre les genes, ici de 1 -> 9 pour les valeurs possible dans un Sudoku
 mutation_percent_genes = 10 # Pourcentage de mutations
@@ -100,7 +110,8 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        initial_population = create_initial_pop(instance,sol_per_pop),
                        mutation_percent_genes=mutation_percent_genes,
                        crossover_type=crossover_func,
-                       mutation_type=mutation_func
+                       mutation_type=mutation_func,
+                       on_generation = on_generation
                        )
 
 # Run Instance:
