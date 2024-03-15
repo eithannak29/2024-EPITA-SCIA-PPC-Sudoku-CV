@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Sudoku.Shared;
+﻿using Sudoku.Shared;
 using DlxLib;
 
 namespace Sudoku.DancingLinks
@@ -17,86 +12,73 @@ namespace Sudoku.DancingLinks
         /// <returns>
         /// The solved Sudoku grid.
         /// </returns>
-        public SudokuGrid Solve(SudokuGrid inputSudoku)
+        public SudokuGrid Solve(SudokuGrid s)
         {
 
             var dlx = new Dlx();
 
-            var matrix = Generate(inputSudoku);
+            var matrix = GenerateDlxMat(s);
 
             IEnumerable<Solution> solutions = dlx.Solve(matrix);
 
             return ConvertToSudokuGrid(solutions.First(), matrix);
         }
-
-
-        private int[,] Generate(SudokuGrid inputSudoku)
+        
+        private int[,] GenerateDlxMat(SudokuGrid inputSudoku)
         {
             int[,] dlxMatrix = new int[729, 324];
-            int cellValue;
+            // Pourquoi 729 : 9 * 9 (=81) cases, et chacune des cases peut avoir 9 chiffres => 9 * 9 * 9 = 81 * 9 = 729 
+            // Pourquoi 324 : chaque case (9 * 9 = 81) est soumise à 4 contraintes : case, box, row, column => 4 * 81 = 324
+
             for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    cellValue = inputSudoku.Cells[i, j];
+                    int cellValue = inputSudoku.Cells[i, j];
                     if (cellValue != 0)
                     {
-                        int[] knownRow = new int[324];
-                        knownRow[i + j * 9] = 1;
-                        knownRow[81 + j * 9 + cellValue - 1] = 1;
-                        knownRow[81 * 2 + i * 9 + cellValue - 1] = 1;
-                        knownRow[81 * 3 + ((i / 3) + (j / 3) * 3) * 9 + cellValue - 1] = 1;
-                        for (int k = 0; k < 324; k++)
-                        {
-                            dlxMatrix[(i + j * 9) * 9, k] = knownRow[k];
-                        }
+                        int rowIndex = i + j * 9;
+                        int colIndex1 = 81 + j * 9 + cellValue - 1;
+                        int colIndex2 = 81 * 2 + i * 9 + cellValue - 1;
+                        int colIndex3 = 81 * 3 + ((i / 3) + (j / 3) * 3) * 9 + cellValue - 1;
+                        dlxMatrix[rowIndex * 9, rowIndex] = 1;
+                        dlxMatrix[rowIndex * 9, colIndex1] = 1;
+                        dlxMatrix[rowIndex * 9, colIndex2] = 1;
+                        dlxMatrix[rowIndex * 9, colIndex3] = 1;
                     }
                     else
                     {
                         for (int val = 1; val <= 9; val++)
                         {
-                            cellValue = val;
-                            int[] knownRow = new int[324];
-                            knownRow[i + j * 9] = 1;
-                            knownRow[81 + j * 9 + cellValue - 1] = 1;
-                            knownRow[81 * 2 + i * 9 + cellValue - 1] = 1;
-                            knownRow[81 * 3 + ((i / 3) + (j / 3) * 3) * 9 + cellValue - 1] = 1;
-                            for (int k = 0; k < 324; k++)
-                            {
-                                dlxMatrix[(i + j * 9) * 9 + val - 1, k] = knownRow[k];
-                            }
+                            int rowIndex = i + j * 9;
+                            int colIndex1 = 81 + j * 9 + val - 1;
+                            int colIndex2 = 81 * 2 + i * 9 + val - 1;
+                            int colIndex3 = 81 * 3 + ((i / 3) + (j / 3) * 3) * 9 + val - 1;
+                            dlxMatrix[rowIndex * 9 + val - 1, rowIndex] = 1;
+                            dlxMatrix[rowIndex * 9 + val - 1, colIndex1] = 1;
+                            dlxMatrix[rowIndex * 9 + val - 1, colIndex2] = 1;
+                            dlxMatrix[rowIndex * 9 + val - 1, colIndex3] = 1;
                         }
                     }
                 }
             }
             return dlxMatrix;
         }
-
+        
         private SudokuGrid ConvertToSudokuGrid(Solution solution, int[,] inputMatrix)
         {
-            var sudokuGrid = new SudokuGrid(); //new int[9][];
+            var sudokuGrid = new SudokuGrid();
 
-            foreach (var row in solution.RowIndexes)
+            foreach (int row in solution.RowIndexes)
             {
-                int cellId = -1;
-                for (int i = 0; i < 81; i++)
-                {
-                    if (inputMatrix[row, i] == 1)
-                    {
-                        cellId = i;
-                        break;
-                    }
-                }
-                int cellValue = -1;
-                for (int i = 81; i < 162; i++)
-                {
-                    if (inputMatrix[row, i] == 1)
-                    {
-                        cellValue = i % 9;
-                        break;
-                    }
-                }
-                sudokuGrid.Cells[cellId % 9, cellId / 9] = cellValue + 1;
+                int? cellId = Enumerable.Range(0, inputMatrix.GetLength(1))
+                    .FirstOrDefault(index => inputMatrix[row, index] == 1, -1);
+                
+                int? cellValue = Enumerable.Range(81, 162)
+                    .FirstOrDefault(index => inputMatrix[row, index] == 1, -1);
+                cellValue %= 9;
+                
+                sudokuGrid.Cells[(int)(cellId % 9), (int)(cellId / 9)] = (int)(cellValue + 1);
             }
 
             return sudokuGrid;
