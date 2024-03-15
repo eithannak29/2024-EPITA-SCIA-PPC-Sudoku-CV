@@ -14,13 +14,8 @@ namespace Sudoku.DancingLinks
         /// </returns>
         public SudokuGrid Solve(SudokuGrid s)
         {
-
-            var dlx = new Dlx();
-
-            var matrix = GenerateDlxMat(s);
-
-            IEnumerable<Solution> solutions = dlx.Solve(matrix);
-
+            int[,] matrix = GenerateDlxMat(s);
+            IEnumerable<Solution> solutions = new Dlx().Solve(matrix);
             return ConvertToSudokuGrid(solutions.First(), matrix);
         }
         
