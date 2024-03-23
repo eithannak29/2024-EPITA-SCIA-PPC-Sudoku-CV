@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sudoku.GraphColoring", "Sud
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sudoku.NeuralNetwork", "Sudoku.NeuralNetwork\Sudoku.NeuralNetwork.csproj", "{5C51BCB6-1CB3-4213-9339-F156DA649DFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.ORTools", "Sudoku.ORTools\Sudoku.ORTools.csproj", "{7C9BADF1-D330-4C0C-BB52-CE82108F1AC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C9BADF1-D330-4C0C-BB52-CE82108F1AC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C9BADF1-D330-4C0C-BB52-CE82108F1AC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C9BADF1-D330-4C0C-BB52-CE82108F1AC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C9BADF1-D330-4C0C-BB52-CE82108F1AC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
