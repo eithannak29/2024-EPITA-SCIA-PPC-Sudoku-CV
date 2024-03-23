@@ -16,9 +16,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Puzzles", "Puzzles", "{5351
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sudoku.Backtracking", "Sudoku.Backtracking\Sudoku.Backtracking.csproj", "{1C50AE77-2CE9-4BD8-ADFE-3C3A255FFC78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.DancingLinks", "Sudoku.DancingLinks\Sudoku.DancingLinks.csproj", "{1DE6A30E-9935-43F9-BAB2-ED7BC8AD9992}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sudoku.DancingLinks", "Sudoku.DancingLinks\Sudoku.DancingLinks.csproj", "{1DE6A30E-9935-43F9-BAB2-ED7BC8AD9992}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.GraphColoring", "Sudoku.GraphColoring\Sudoku.GraphColoring.csproj", "{87A13711-2440-49BE-8FC8-ABC8F4EEBB22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sudoku.GraphColoring", "Sudoku.GraphColoring\Sudoku.GraphColoring.csproj", "{87A13711-2440-49BE-8FC8-ABC8F4EEBB22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sudoku.NeuralNetwork", "Sudoku.NeuralNetwork\Sudoku.NeuralNetwork.csproj", "{5C51BCB6-1CB3-4213-9339-F156DA649DFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,6 +48,10 @@ Global
 		{87A13711-2440-49BE-8FC8-ABC8F4EEBB22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87A13711-2440-49BE-8FC8-ABC8F4EEBB22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87A13711-2440-49BE-8FC8-ABC8F4EEBB22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C51BCB6-1CB3-4213-9339-F156DA649DFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
