@@ -7,15 +7,25 @@ import pygad
 
 solution_nb = 1
 
-instance = ((0,0,0,0,9,4,0,3,0),        
-          (0,0,0,5,1,0,0,0,7),
-          (0,8,9,0,0,0,0,4,0),
-          (0,0,0,0,0,0,2,0,8),
-          (0,6,0,2,0,1,0,5,0),
-          (1,0,2,0,0,0,0,0,0),
-          (0,7,0,0,0,0,5,2,0),
-          (9,0,0,0,6,5,0,0,0),
-          (0,4,0,9,7,0,0,0,0))
+# instance = ((0,0,0,0,9,4,0,3,0),        
+#           (0,0,0,5,1,0,0,0,7),
+#           (0,8,9,0,0,0,0,4,0),
+#           (0,0,0,0,0,0,2,0,8),
+#           (0,6,0,2,0,1,0,5,0),
+#           (1,0,2,0,0,0,0,0,0),
+#           (0,7,0,0,0,0,5,2,0),
+#           (9,0,0,0,6,5,0,0,0),
+#           (0,4,0,9,7,0,0,0,0))
+
+instance = ((0,8,0,0,0,0,0,9,0),
+        (0,0,7,5,0,2,8,0,0),
+        (6,0,0,8,0,7,0,0,5),
+        (3,7,0,0,8,0,0,5,1),
+        (2,0,0,0,0,0,0,0,8),
+        (9,5,0,0,4,0,0,3,2),
+        (8,0,0,1,0,4,0,0,9),
+        (0,0,1,9,0,3,6,0,0),
+        (0,4,0,0,0,0,0,2,0))
 
 best_solution_fitness = 0
 
@@ -45,20 +55,11 @@ def create_initial_pop(instance: tuple[tuple],pop_size):
 def fitness_func(ga_instance, solution,solution_idx):
        # if solution_idx == 0:
        #         print(np.array(solution).reshape(9,9))
-        fitness = 400
+        fitness = 100
         solution = np.array(solution).reshape(9,9)
         for i in range(9):
                 fitness-= 9 - len(np.unique(solution[i, :])) #row
                 fitness-= 9 - len(np.unique(solution[:, i])) #column
-        for i in range(0,9,3): #block
-                for j in range(0,9,3):
-                        block = []
-                        for k in range(3):
-                                for l in range(3):
-                                        num = solution[i+k, j+l]
-                                        if num != 0:
-                                                block.append(num)
-                        fitness-= 9 - len(set(block))
         return fitness
 
 def crossover_func(parents, offspring_size, ga_instance):
@@ -87,7 +88,7 @@ def crossover_func(parents, offspring_size, ga_instance):
 #     return offspring
 
 def mutation_func(offspring, ga_instance):
-    mutation_probability = 0.25
+    mutation_probability = 0.5
     fixed_number = np.array(instance).reshape(9,9) != 0 
     num_mutations = int(mutation_probability * offspring.shape[0]) 
 
@@ -145,7 +146,6 @@ num_genes = 9 * 9 # Nombre de genes ici 81 car 81 cases dans un Sudoku
 gene_space = [i for i in range(1, 10)]  # Valeurs que peuvent prendre les genes, ici de 1 -> 9 pour les valeurs possible dans un Sudoku
 mutation_percent_genes = 10 # Pourcentage de mutations
 
-# Autre parametres a rajouter #TODO
 
 # Genetic Instance:
 
@@ -162,17 +162,6 @@ mutation_percent_genes = 10 # Pourcentage de mutations
 #                       parallel_processing=["thread", 4]
 #                       )
 
-
-# ga_instance = pygad.GA(num_generations=num_generations,
-#                        num_parents_mating=2,
-#                        fitness_func=fitness_func,
-#                        gene_space=init_gene_space(instance),
-#                        initial_population = create_initial_pop(instance,sol_per_pop),
-#                        mutation_percent_genes=mutation_percent_genes,
-#                        crossover_type="uniform",
-#                        mutation_type="swap",
-#                        on_generation = on_generation
-#                        )
 # Run Instance:
 start = default_timer()
 
