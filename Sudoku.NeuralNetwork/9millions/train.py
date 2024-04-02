@@ -26,11 +26,16 @@ def train(dataset):
 
     optimizer = optim.Adam(sudoku_solver.parameters(), lr=0.001)
 
-
+    #  config
     epochs = 5
     loss_train = []
     loss_val = []
-    eval_border = int(len(trainloader) * 0.9)
+    # eval_border = int(len(trainloader) * 0.002)
+    eval_border = 101
+    nbr_test = 10
+    logger.debug(f"nombre d'iteration {eval_border}")
+
+
     iterations = 0
     for e in range(epochs):
         sudoku_solver.train()
@@ -53,6 +58,12 @@ def train(dataset):
                     logger.debug(f"epoch #{e} {iterations} iterations train - {loss.item()}")
                 iterations+=1
             else:
+                if i_batch > eval_border + nbr_test:
+                    break
+                logger.debug(f"epoch #{e} {iterations} iterations test")
                 sudoku_solver.eval()
                 loss_val.append(evaluate_regression(sudoku_solver, x, y).sum().item())
+
         logger.debug(f"epoch #{e} {iterations} iterations val - {loss_val[-1]}")
+    logger.debug(f"start save")
+    torch.save(sudoku_solver.state_dict(), "model_save")
