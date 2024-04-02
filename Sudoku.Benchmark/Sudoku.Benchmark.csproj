@@ -17,12 +17,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Sudoku.DancingLinks\Sudoku.DancingLinks.csproj" />
     <ProjectReference Include="..\Sudoku.GraphColoring\Sudoku.GraphColoring.csproj" />
-    <ProjectReference Include="..\Sudoku.NeuralNetwork\Sudoku.NeuralNetwork.csproj" />
     <ProjectReference Include="..\Sudoku.CNN\Sudoku.CNN.csproj" />
+    <ProjectReference Include="..\Sudoku.NeuralNetwork\Sudoku.NeuralNetwork.csproj" />
     <ProjectReference Include="..\Sudoku.Shared\Sudoku.Shared.csproj" />
     <ProjectReference Include="..\Sudoku.Backtracking\Sudoku.Backtracking.csproj" />
     <ProjectReference Include="..\Sudoku.Shared\Sudoku.Shared.csproj" />
-    <ProjectReference Include="..\Sudoku.ORTools\Sudoku.ORTools.csproj"/>
+    <ProjectReference Include="..\Sudoku.ORTools\Sudoku.ORTools.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">
