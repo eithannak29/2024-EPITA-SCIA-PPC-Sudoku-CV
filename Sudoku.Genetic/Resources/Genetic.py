@@ -9,6 +9,8 @@ from utils import create_initial_pop,swap_blocks
 
 solution_nb = 1
 
+fitness_to_reach = 100
+
 # instance = ((0,0,0,0,9,4,0,3,0),        
 #           (0,0,0,5,1,0,0,0,7),
 #           (0,8,9,0,0,0,0,4,0),
@@ -19,20 +21,20 @@ solution_nb = 1
 #           (9,0,0,0,6,5,0,0,0),
 #           (0,4,0,9,7,0,0,0,0))
 
-instance = ((0,8,0,0,0,0,0,9,0),
-        (0,0,7,5,0,2,8,0,0),
-        (6,0,0,8,0,7,0,0,5),
-        (3,7,0,0,8,0,0,5,1),
-        (2,0,0,0,0,0,0,0,8),
-        (9,5,0,0,4,0,0,3,2),
-        (8,0,0,1,0,4,0,0,9),
-        (0,0,1,9,0,3,6,0,0),
-        (0,4,0,0,0,0,0,2,0))
+# instance = ((0,8,0,0,0,0,0,9,0),
+#         (0,0,7,5,0,2,8,0,0),
+#         (6,0,0,8,0,7,0,0,5),
+#         (3,7,0,0,8,0,0,5,1),
+#         (2,0,0,0,0,0,0,0,8),
+#         (9,5,0,0,4,0,0,3,2),
+#         (8,0,0,1,0,4,0,0,9),
+#         (0,0,1,9,0,3,6,0,0),
+#         (0,4,0,0,0,0,0,2,0))
 
 best_solution_fitness = 0
 
-def fitness_func(ga_instance, solution,solution_idx):
-        fitness = 100
+def fitness_func(ga_instance, solution,solution_offspring_idx):
+        fitness = fitness_to_reach
         solution = np.array(solution).reshape(9,9)
         for i in range(9):
                 fitness-= 9 - len(np.unique(solution[i, :])) #row
@@ -51,38 +53,40 @@ def crossover_func(parents, offspring_size, ga_instance):
         
 
 def mutation_func(offspring, ga_instance):
-    mutation_probability = 0.5
-    fixed_number = np.array(instance).reshape(9,9) != 0 
-    num_mutations = int(mutation_probability * offspring.shape[0]) 
+        mutation_probability = 0.9
+        fixed_number = np.array(instance).reshape(9,9) != 0 
+        num_mutations = int(mutation_probability * offspring.shape[0]) 
 
-    for _ in range(num_mutations):
-        # Select a random offspring
-        idx = np.random.randint(offspring.shape[0])
+        for _ in range(num_mutations):
+                # Select a random offspring
+                offspring_idx = np.random.randint(offspring.shape[0])
 
-        # Select a random 3x3 grid
-        grid_x = np.random.choice([0, 3, 6])
-        grid_y = np.random.choice([0, 3, 6])
+                # Select a random 3x3 grid
+                grid_x = np.random.choice([0, 3, 6])
+                grid_y = np.random.choice([0, 3, 6])
 
-        # Get the indices of the non-fixed numbers in the grid
-        non_fixed_indices = []
-        for i in range(grid_x, grid_x + 3):
-            for j in range(grid_y, grid_y + 3):
-                if not fixed_number[i, j]:
-                    non_fixed_indices.append((i, j))
+                # Get the indices of the non-fixed numbers in the grid
+                non_fixed_indices = []
+                for i in range(grid_x, grid_x + 3):
+                        for j in range(grid_y, grid_y + 3):
+                                if not fixed_number[i, j]:
+                                        non_fixed_indices.append((i, j))
 
-        # If there are less than 2 non-fixed numbers, we can't swap anything
-        if len(non_fixed_indices) < 2:
-            continue
+                # If there are less than 2 non-fixed numbers, we can't swap anything
+                if len(non_fixed_indices) < 2:
+                        continue
 
-        # Select two random non-fixed numbers to swap
-        swap_indices = np.random.choice(len(non_fixed_indices), 2, replace=False)
-        i1, j1 = non_fixed_indices[swap_indices[0]]
-        i2, j2 = non_fixed_indices[swap_indices[1]]
+                # Select two random non-fixed numbers to swap
+                swap_indices = np.random.choice(len(non_fixed_indices), 2, replace=False)
+                i1, j1 = non_fixed_indices[swap_indices[0]]
+                i2, j2 = non_fixed_indices[swap_indices[1]]
 
-        # Swap the numbers
-        offspring[idx, i1*9 + j1], offspring[idx, i2*9 + j2] = offspring[idx, i2*9 + j2], offspring[idx, i1*9 + j1]
+                # Swap the numbers
+                offspring[offspring_idx, i1*9 + j1], offspring[offspring_idx, i2*9 + j2] = offspring[offspring_idx, i2*9 + j2], offspring[offspring_idx, i1*9 + j1]
 
-    return offspring
+        return offspring
+
+
 
 def on_generation(ga_instance):
         solution, solution_fitness, solution_idx = ga_instance.best_solution()
@@ -104,7 +108,7 @@ def init_gene_space(instance):
 # Hyper-Parameters
 
 num_generations = 100 # Nombre de generations
-sol_per_pop = 10000  # Nombre de solution par generations 
+sol_per_pop = 20000  # Nombre de solution par generations 
 num_genes = 9 * 9 # Nombre de genes ici 81 car 81 cases dans un Sudoku
 gene_space = [i for i in range(1, 10)]  # Valeurs que peuvent prendre les genes, ici de 1 -> 9 pour les valeurs possible dans un Sudoku
 mutation_percent_genes = 10 # Pourcentage de mutations
@@ -130,14 +134,14 @@ while True:
         print(f"Paramètres de la solution # {solution_nb}:\n", np.array(solution).reshape(9,9))
         print(f"Fitness de la solution # {solution_nb}:", solution_fitness)
         solution_nb += 1
-        if solution_fitness == 400:
+        if solution_fitness == fitness_to_reach:
                break
 
-# if(solveSudoku(instance)):
-# 	print_grid(instance)
-# 	r=instance
-# else:
-# 	print ("Aucune solution trouv�e")
+if(solveSudoku(instance)):
+	print_grid(instance)
+	r=instance
+else:
+	print ("Aucune solution trouv�e")
 
 execution = default_timer() - start
 print("Le temps de r�solution est de : ", execution, " seconds as a floating point value")
