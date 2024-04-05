@@ -5,29 +5,33 @@ import random
 import pygad
 import warnings
 #import matplotlib.pyplot as plt
-from utils import create_initial_pop,swap_blocks,matrix_difference,create_initial_pop_with_mask
+from utils import create_initial_pop,swap_blocks,matrix_difference,create_initial_pop_with_mask, generate_mask_from_instance
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 solution_nb : int = 1
 
-# instance : tuple[tuple] = ((0,0,0,0,9,4,0,3,0),
-#           (0,0,0,5,1,0,0,0,7),
-#           (0,8,9,0,0,0,0,4,0),
-#           (0,0,0,0,0,0,2,0,8),
-#           (0,6,0,2,0,1,0,5,0),
-#           (1,0,2,0,0,0,0,0,0),
-#           (0,7,0,0,0,0,5,2,0),
-#           (9,0,0,0,6,5,0,0,0),
-#           (0,4,0,9,7,0,0,0,0))
+instance : tuple[tuple] = ((0,0,0,0,9,4,0,3,0),
+          (0,0,0,5,1,0,0,0,7),
+          (0,8,9,0,0,0,0,4,0),
+          (0,0,0,0,0,0,2,0,8),
+          (0,6,0,2,0,1,0,5,0),
+          (1,0,2,0,0,0,0,0,0),
+          (0,7,0,0,0,0,5,2,0),
+          (9,0,0,0,6,5,0,0,0),
+          (0,4,0,9,7,0,0,0,0))
+
+worst_col_row_tab = [(0,0) for _ in range(10000)]
 
 # The fitness function apply a penalty for each duplicate in a row or column
 def fitness_func(ga_instance : pygad.GA, solution : np.ndarray , solution_idx : int) -> float:
         fitness = 100
         solution = np.array(solution).reshape(9,9)
         for i in range(9):
-                fitness-= 9 - len(np.unique(solution[i, :])) #row
-                fitness-= 9 - len(np.unique(solution[:, i])) #column
+                row_error = 9 - len(np.unique(solution[i, :])) #row
+                col_error = 9 - len(np.unique(solution[:, i])) #column
+                fitness -= (row_error + col_error)
+                worst_col_row_tab[solution_idx] = (row_error, col_error)
         return fitness
 
 # The crossover function is merge of blocks of two sudoku puzzles by splitting at a random point
@@ -42,10 +46,20 @@ def crossover_func(parents : np.ndarray, offspring_size : tuple , ga_instance : 
     return np.array(offsprings)
 
 
+# Global Variables
+default_mask = generate_mask_from_instance(instance)
+fixed_number = np.array(instance).reshape(9,9) != 0
+
+# TODO
+# mutation avec mask
+# swap en fonction du l'erreur de la solution -> ou ce situe l'erreur
+
 # the mutation function is a simple swap of two random cells in the same 3x3 grid of the Sudoku puzzle
 def mutation_func(offspring : np.ndarray, ga_instance : pygad.GA) -> np.ndarray:
-    mutation_probability = 1
-    fixed_number = np.array(instance).reshape(9,9) != 0 
+    global default_mask
+    global fixed_number
+
+    mutation_probability = 1 
     num_mutations = int(mutation_probability * offspring.shape[0]) 
 
     for _ in range(num_mutations):
@@ -63,11 +77,15 @@ def mutation_func(offspring : np.ndarray, ga_instance : pygad.GA) -> np.ndarray:
         if len(non_fixed_indices) < 2:
             continue
 
-        swap_indices = np.random.choice(len(non_fixed_indices), 2, replace=False)
-        i1, j1 = non_fixed_indices[swap_indices[0]]
-        i2, j2 = non_fixed_indices[swap_indices[1]]
-
-        offspring[idx, i1*9 + j1], offspring[idx, i2*9 + j2] = offspring[idx, i2*9 + j2], offspring[idx, i1*9 + j1]
+        try_ = 0
+        while try_ < 5:  #avoid infinite loop
+            try_ += 1
+            swap_indices = np.random.choice(len(non_fixed_indices), 2, replace=False) # Choose 2 random indices to swap
+            i1, j1 = non_fixed_indices[swap_indices[0]]
+            i2, j2 = non_fixed_indices[swap_indices[1]]
+            if default_mask[int(offspring[idx, i1*9 + j1] - 1), i1, j1] and default_mask[int(offspring[idx, i2*9 + j2] - 1), i2, j2]:       # Check if the swap is valid according to the mask -> only swap both values are True in the mask
+                offspring[idx, i1*9 + j1], offspring[idx, i2*9 + j2] = offspring[idx, i2*9 + j2], offspring[idx, i1*9 + j1]
+                break   # Exit the loop if the swap is done
 
     return offspring
 
