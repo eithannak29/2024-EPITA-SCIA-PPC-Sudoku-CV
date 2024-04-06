@@ -5,7 +5,7 @@ import random
 import pygad
 import warnings
 #import matplotlib.pyplot as plt
-from utils import create_initial_pop,swap_blocks,matrix_difference,create_initial_pop_with_mask, generate_mask_from_instance
+from utils import create_initial_pop,swap_blocks,matrix_difference,create_initial_pop_with_mask, generate_mask_from_instance, get_index_most_appear
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -21,7 +21,7 @@ instance : tuple[tuple] = ((0,0,0,0,9,4,0,3,0),
           (9,0,0,0,6,5,0,0,0),
           (0,4,0,9,7,0,0,0,0))
 
-worst_col_row_tab = [(0,0) for _ in range(10000)]
+error_tab = [[0,0,0] for _ in range(1000)]  #[col, row, fitness] for each solution in the population
 
 # The fitness function apply a penalty for each duplicate in a row or column
 def fitness_func(ga_instance : pygad.GA, solution : np.ndarray , solution_idx : int) -> float:
@@ -31,7 +31,11 @@ def fitness_func(ga_instance : pygad.GA, solution : np.ndarray , solution_idx : 
                 row_error = 9 - len(np.unique(solution[i, :])) #row
                 col_error = 9 - len(np.unique(solution[:, i])) #column
                 fitness -= (row_error + col_error)
-                worst_col_row_tab[solution_idx] = (row_error, col_error)
+                if row_error > error_tab[solution_idx][1] :
+                     error_tab[solution_idx][1] = i  #set the worst row index
+                if col_error > error_tab[solution_idx][0] :
+                     error_tab[solution_idx][0] = i #set the worst column index
+        error_tab[solution_idx][2] = fitness
         return fitness
 
 # The crossover function is merge of blocks of two sudoku puzzles by splitting at a random point
@@ -49,45 +53,98 @@ def crossover_func(parents : np.ndarray, offspring_size : tuple , ga_instance : 
 # Global Variables
 default_mask = generate_mask_from_instance(instance)
 fixed_number = np.array(instance).reshape(9,9) != 0
-
 # TODO
 # mutation avec mask
 # swap en fonction du l'erreur de la solution -> ou ce situe l'erreur
 
+def mutation_error(offspring : np.ndarray, ga_instance : pygad.GA, idx : int):
+    global default_mask, fixed_number, error_tab
+    
+    s = offspring[idx].reshape(9,9)
+    print(s[:, error_tab[idx][0]])
+    i_worst_col = get_index_most_appear(s[:, error_tab[idx][0]])  #get index of error in the worst column
+    j_worst_row = get_index_most_appear(s[error_tab[idx][1], :])  #get index of error in the worst row
+    
+    swap_idx = 0
+    while True:
+        i_col = np.random.choice(len(i_worst_col), 1, replace=False)  #select randomly one of the worst column
+        j_row = np.random.choice(len(j_worst_row), 1, replace=False)  #select randomly one of the worst row
+        
+        if np.random.random() <= 0.5 and not fixed_number[i_worst_col[i_col], error_tab[idx][0]]:  #swap with the worst column or the worst row
+            swap_idx = i_worst_col[i_col]*9 + error_tab[idx][0]
+        elif not fixed_number[error_tab[idx][1], j_worst_row[j_row]]:
+            swap_idx = error_tab[idx][1]*9 + j_worst_row[j_row]
+        else:
+            continue
+        break
+    return swap_idx  #return the index of the error to swap
+
 # the mutation function is a simple swap of two random cells in the same 3x3 grid of the Sudoku puzzle
 def mutation_func(offspring : np.ndarray, ga_instance : pygad.GA) -> np.ndarray:
-    global default_mask
-    global fixed_number
+    global default_mask, fixed_number, error_tab
 
     mutation_probability = 1 
-    num_mutations = int(mutation_probability * offspring.shape[0]) 
+    num_mutations = int(mutation_probability * offspring.shape[0])
 
     for _ in range(num_mutations):
         idx = np.random.randint(offspring.shape[0])
 
-        grid_x = np.random.choice([0, 3, 6])
-        grid_y = np.random.choice([0, 3, 6])
+        if (error_tab[idx][2] >= 90):  #if high fitness, mutation_error (mutation with error swap)
+            swap_idx = mutation_error(offspring, ga_instance, idx)[0]
+            print("swapidx: ", swap_idx)
+            grid_x = (swap_idx // 9) // 3 * 3
+            grid_y = (swap_idx % 9) // 3 * 3
+            print("grid_x, grid_y: ", grid_x, grid_y)
+            non_fixed_indices = []
+            for i in range(grid_x, grid_x + 3):
+                for j in range(grid_y, grid_y + 3):
+                    if not fixed_number[i, j]:
+                        non_fixed_indices.append((i, j))
 
-        non_fixed_indices = []
-        for i in range(grid_x, grid_x + 3):
-            for j in range(grid_y, grid_y + 3):
-                if not fixed_number[i, j]:
-                    non_fixed_indices.append((i, j))
+            if len(non_fixed_indices) < 2:
+                continue
+            try_ = 0
+            print("offspring: ", offspring[idx])
+            while try_ < 5:  #avoid infinite loop
+                try_ += 1
+                swap_indice = np.random.choice(len(non_fixed_indices), 1, replace=False) # Choose 1 random indices to swap
+                i1, j1 = non_fixed_indices[swap_indice]
+                i2 = int(swap_idx // 9)
+                j2 = swap_idx % 9 - 1
+                print("coord: ", i1, j1, i2, j2)
+                if default_mask[int(offspring[idx, i1*9 + j1] - 1), i1, j1] and default_mask[int(offspring[idx, swap_idx] - 1), i2, j2] and (i1 != i2 or j1 != j2):       # Check if the swap is valid according to the mask -> only swap both values are True in the mask
+                    offspring[idx, i1*9 + j1], offspring[idx, swap_idx] = offspring[idx, swap_idx], offspring[idx, i1*9 + j1]
+                    break   # Exit the loop if the swap is done
+            print("offspring: ", offspring[idx])
+            print("---------------------------------------------------------------")
+        else:  #else random swap mutation
+            grid_x = np.random.choice([0, 3, 6])
+            grid_y = np.random.choice([0, 3, 6])
 
-        if len(non_fixed_indices) < 2:
-            continue
+            non_fixed_indices = []
+            for i in range(grid_x, grid_x + 3):
+                for j in range(grid_y, grid_y + 3):
+                    if not fixed_number[i, j]:
+                        non_fixed_indices.append((i, j))
 
-        try_ = 0
-        while try_ < 5:  #avoid infinite loop
-            try_ += 1
-            swap_indices = np.random.choice(len(non_fixed_indices), 2, replace=False) # Choose 2 random indices to swap
-            i1, j1 = non_fixed_indices[swap_indices[0]]
-            i2, j2 = non_fixed_indices[swap_indices[1]]
-            if default_mask[int(offspring[idx, i1*9 + j1] - 1), i1, j1] and default_mask[int(offspring[idx, i2*9 + j2] - 1), i2, j2]:       # Check if the swap is valid according to the mask -> only swap both values are True in the mask
-                offspring[idx, i1*9 + j1], offspring[idx, i2*9 + j2] = offspring[idx, i2*9 + j2], offspring[idx, i1*9 + j1]
-                break   # Exit the loop if the swap is done
+            if len(non_fixed_indices) < 2:
+                continue
 
+            try_ = 0
+            while try_ < 5:  #avoid infinite loop
+                try_ += 1
+                swap_indices = np.random.choice(len(non_fixed_indices), 2, replace=False) # Choose 2 random indices to swap
+                i1, j1 = non_fixed_indices[swap_indices[0]]
+                i2, j2 = non_fixed_indices[swap_indices[1]]
+                if default_mask[int(offspring[idx, i1*9 + j1] - 1), i1, j1] and default_mask[int(offspring[idx, i2*9 + j2] - 1), i2, j2]:       # Check if the swap is valid according to the mask -> only swap both values are True in the mask
+                    offspring[idx, i1*9 + j1], offspring[idx, i2*9 + j2] = offspring[idx, i2*9 + j2], offspring[idx, i1*9 + j1]
+                    break   # Exit the loop if the swap is done
+                
+                 
+             
     return offspring
+
+#allow_duplicate_genes try
 
 previous_best_solution = None
 
@@ -97,6 +154,9 @@ def on_generation(ga_instance: pygad.GA) -> None:
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
     print("Generation #", ga_instance.generations_completed)
     print("Best solution fitness:", solution_fitness)
+    
+    # global error_tab
+    # print("print 10 first values of error_tab: ", error_tab[0:10])
 
 #     fitness_values.append(100-solution_fitness)
 #     lines.set_xdata(list(range(ga_instance.generations_completed)))
@@ -116,7 +176,7 @@ def on_generation(ga_instance: pygad.GA) -> None:
 # Hyper-Parameters
 
 num_generations = 100 # Nombre de generations
-sol_per_pop = 10000  # Nombre de solution par generations 
+sol_per_pop = 1000  # Nombre de solution par generations 
 gene_space = [i for i in range(1, 10)]  # Valeurs que peuvent prendre les genes, ici de 1 -> 9 pour les valeurs possible dans un Sudoku
 mutation_percent_genes = 10 # Pourcentage de mutations
 crossover_percent = 100 # Pourcentage de crossover
