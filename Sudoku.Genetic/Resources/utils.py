@@ -88,6 +88,11 @@ def generate_mask_from_instance(instance: tuple[tuple]) -> np.ndarray:
                 mask[row, col, num_index] = True
     return mask
 
+def get_index_most_appear(tab):
+    tab_list = tab.tolist()
+    max_ = max(set(tab), key = tab_list.count)
+    pos = np.where(tab == max_)[0]
+    return pos
 
 # instance = ( (0,0,0,0,9,4,0,3,0),
 #             (0,0,0,5,1,0,0,0,7),
